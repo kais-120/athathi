@@ -1,0 +1,50 @@
+name: athathi
+description: أثاثي - إدارة بيع الأثاث المستعمل
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any # version is pinned by flutter_localizations
+
+  # Local database (offline-first) + paths
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.4
+
+  # Security
+  local_auth: ^2.3.0
+  local_auth_android: ^1.0.0 # Arabic texts for the Android biometric prompt
+  crypto: ^3.0.5
+
+  # Product pictures (Part 2)
+  image_picker: ^1.1.2
+
+  # Google Drive backup / restore (Part 7). Drive is used ONLY for backups.
+  archive: ^3.6.1 # zip of the database + pictures
+  google_sign_in: ^6.2.2
+  googleapis: ^13.2.0
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
