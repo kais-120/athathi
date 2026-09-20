@@ -26,6 +26,10 @@ dependencies:
   # Product pictures (Part 2)
   image_picker: ^1.1.2
 
+  # Invoice PDF (Arabic, offline) + share / save sheet
+  pdf: ^3.11.1
+  printing: ^5.13.2
+
   # Google Drive backup / restore (Part 7). Drive is used ONLY for backups.
   archive: ^3.6.1 # zip of the database + pictures
   google_sign_in: ^6.2.2

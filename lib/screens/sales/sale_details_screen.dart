@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:printing/printing.dart';
 
 import '../../app/app_scope.dart';
 import '../../app/app_services.dart';
@@ -7,7 +7,7 @@ import '../../app/theme.dart';
 import '../../models/sale.dart';
 import '../../utils/currency_formatter.dart';
 import '../../utils/date_formatter.dart';
-import '../../utils/invoice_formatter.dart';
+import '../../utils/invoice_pdf.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/status_badge.dart';
 
@@ -30,19 +30,34 @@ class _SaleDetailsScreenState extends State<SaleDetailsScreen> {
     _services = AppScope.of(context);
   }
 
-  Future<void> _copyInvoice(Sale sale) async {
-    final settings = _services.settings.current;
-    await Clipboard.setData(ClipboardData(
-      text: InvoiceFormatter.text(
+  bool _exporting = false;
+
+  /// Builds the invoice PDF and opens the system share sheet, where the user
+  /// can save it to the phone (Files / Downloads / Drive) or send it.
+  Future<void> _downloadPdf(Sale sale) async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final settings = _services.settings.current;
+      final bytes = await InvoicePdf.build(
         sale,
         businessName: settings.businessName,
         subtitle: settings.businessSubtitle,
-      ),
-    ));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('تم نسخ الفاتورة')));
+      );
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'athathi_invoice_${sale.number}.pdf',
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+              const SnackBar(content: Text('تعذر إنشاء ملف الفاتورة PDF')));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   @override
@@ -157,10 +172,16 @@ class _SaleDetailsScreenState extends State<SaleDetailsScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: OutlinedButton.icon(
-            onPressed: () => _copyInvoice(sale),
-            icon: const Icon(Icons.copy_rounded),
-            label: const Text('نسخ الفاتورة'),
+          child: FilledButton.icon(
+            onPressed: _exporting ? null : () => _downloadPdf(sale),
+            icon: _exporting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
+                : const Icon(Icons.picture_as_pdf_outlined),
+            label: const Text('تحميل الفاتورة PDF'),
           ),
         ),
       ),
