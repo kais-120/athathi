@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../app/app_scope.dart';
 import '../../app/app_services.dart';
@@ -34,7 +34,7 @@ class _SaleDetailsScreenState extends State<SaleDetailsScreen> {
 
   /// Builds the invoice PDF and opens the system share sheet, where the user
   /// can save it to the phone (Files / Downloads / Drive) or send it.
-  Future<void> _downloadPdf(Sale sale) async {
+ Future<void> _downloadPdf(Sale sale) async {
     if (_exporting) return;
     setState(() => _exporting = true);
     try {
@@ -44,16 +44,23 @@ class _SaleDetailsScreenState extends State<SaleDetailsScreen> {
         businessName: settings.businessName,
         subtitle: settings.businessSubtitle,
       );
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename: 'athathi_invoice_${sale.number}.pdf',
+      final path = await FilePicker.saveFile(
+        dialogTitle: 'حفظ الفاتورة',
+        fileName: 'athathi_invoice_${sale.number}.pdf',
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        bytes: bytes, // required on Android/iOS to actually write the file
       );
+      if (!mounted || path == null) return; // user cancelled
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('تم حفظ الفاتورة')));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-              const SnackBar(content: Text('تعذر إنشاء ملف الفاتورة PDF')));
+              const SnackBar(content: Text('تعذر حفظ ملف الفاتورة PDF')));
       }
     } finally {
       if (mounted) setState(() => _exporting = false);
